@@ -1,0 +1,101 @@
+kintai
+├── accounts
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── attendance
+│   ├── admin.py
+│   ├── apps.py
+│   ├── fixture
+│   │   └── test_attendance_records.json
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_attendances_emotions.py
+│   │   ├── 0003_alter_attendances_emotions.py
+│   │   ├── 0004_auto_20230222_2239.py
+│   │   ├── 0005_auto_20230222_2344.py
+│   │   ├── 0006_auto_20230223_0133.py
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       ├── 0001_initial.cpython-310.pyc
+│   │       ├── 0002_attendances_emotions.cpython-310.pyc
+│   │       ├── 0003_alter_attendances_emotions.cpython-310.pyc
+│   │       ├── 0004_auto_20230222_2239.cpython-310.pyc
+│   │       ├── 0005_auto_20230222_2344.cpython-310.pyc
+│   │       ├── 0006_auto_20230223_0133.cpython-310.pyc
+│   │       └── __init__.cpython-310.pyc
+│   ├── models.py
+│   ├── static
+│   │   └── attendance
+│   │       ├── face-api.min.js
+│   │       ├── facerecognition.js
+│   │       ├── facerecognition_chatGPT.js
+│   │       ├── img
+│   │       │   ├── einstein.jpg
+│   │       │   ├── not_sakai.jpg
+│   │       │   └── sakai.jpg
+│   │       ├── js
+│   │       │   ├── face-api.js
+│   │       │   └── jquery-2.1.1.min.js
+│   │       └── models
+│   │           ├── age_gender_model-shard1
+│   │           ├── age_gender_model-weights_manifest.json
+│   │           ├── face_expression_model-shard1
+│   │           ├── face_expression_model-weights_manifest.json
+│   │           ├── face_landmark_68_model-shard1
+│   │           ├── face_landmark_68_model-weights_manifest.json
+│   │           ├── face_landmark_68_tiny_model-shard1
+│   │           ├── face_landmark_68_tiny_model-weights_manifest.json
+│   │           ├── face_recognition_model-shard1
+│   │           ├── face_recognition_model-shard2
+│   │           ├── face_recognition_model-weights_manifest.json
+│   │           ├── mtcnn_model-shard1
+│   │           ├── mtcnn_model-weights_manifest.json
+│   │           ├── ssd_mobilenetv1_model-shard1
+│   │           ├── ssd_mobilenetv1_model-shard2
+│   │           ├── ssd_mobilenetv1_model-weights_manifest.json
+│   │           ├── tiny_face_detector_model-shard1
+│   │           ├── tiny_face_detector_model-weights_manifest.json
+│   │           └── 説明.txt
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── backup_database
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── tests.py
+│   └── views.py
+├── fix_request
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── kintai
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── manage.py
+└── template
+    ├── acception_detail.html
+    ├── attend_records.html
+    ├── base.html
+    ├── fix_request.html
+    ├── form_page.html
+    ├── home.html
+    ├── registration
+    │   ├── login.html
+    │   └── signup.html
+    ├── request_acception.html
+    └── table.html

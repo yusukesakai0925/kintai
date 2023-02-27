@@ -1,0 +1,276 @@
+{% extends 'base.html' %} 
+
+{% block title %}table{% endblock %}
+{% block navbar %}
+<span class="navbar-text">
+    <a href="{% url 'login' %}">ログイン</a>
+    <a href="{% url 'signup'%}">サインアップ</a>
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-md-center bg-light">
+   <h1 class="display-4" id='myClock'></h1>
+</div>
+
+
+{% block recognition %}
+<!--顔認証部分-->
+    <div class="recognition">
+      {% load static %}
+      <canvas id="canvas" class="overlay"></canvas>
+      <video autoplay="true" id="videoElement"></video>
+      <script src="{% static 'attendance/js/face-api.js' %}"></script>
+      
+      
+      <style>
+            #container {
+                margin: 0px auto;
+                width: 500px;
+                height: 375px;
+                border: 10px #333 solid;
+            }
+            #videoElement {
+                top: 0;
+                left:0;
+                width: 500px;
+                height: 375px;
+                background-color: #666;
+            }
+            #overlay, .overlay {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+        }
+        </style>
+    </div>
+{% endblock %}
+
+
+{% for user in table %}
+<div class="container my-1">
+  <div class="row">
+    <div class="name col-2">
+      {{ user.username }}
+    </div>
+    <div class="d-grid gap-2 col-3 mx-auto">
+      <button id='attendance_button-{{ user.id }}' type="button" class="btn btn-lg btn-success" disabled>出勤</button>
+    </div>
+    <div class="col-2">
+    {% for attendance in attendances %}
+      {% if attendance.user_id == user.id%}
+    <p>{{ attendance.attendance_time|time:"H:i:s" }}</p>
+      {% endif %}
+    {% endfor %}
+    </div>
+    <div class="d-grid gap-2 col-3 mx-auto">
+      <button id='leave_button-{{ user.id }}' type="button" class="btn btn-lg btn-danger" disabled>退勤</button>
+    </div>
+    <div class="col-2">
+     {% for attendance in attendances %}
+        {% if attendance.user_id == user.id%}
+      <p>{{ attendance.leave_time|time:"H:i:s"}}</p>
+        {% endif %}
+     {% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% csrf_token %}
+<div id="push_result" class="alert" role="alert" style="display:none"></div>
+
+<script>
+    var emotions;
+
+   // 時間をリアルタイム表示する
+   function updateClock() {
+     var now = new Date();
+     var hour = now.getHours();
+     var minute = now.getMinutes();
+     var second = now.getSeconds();
+     if ( hour < 10 ) hour = "0" + hour;
+     if ( minute < 10 ) minute = "0" + minute;
+     if ( second < 10 ) second = "0" + second;
+     document.getElementById('myClock').innerHTML = hour+":"+minute+":"+second;
+   }
+   setInterval("updateClock();", 1000);
+
+   {% for user in table %}
+   $('#attendance_button-{{ user.id }}').on('click', function () {
+     $('#push_result').removeClass('alert-danger');
+     $('#push_result').removeClass('alert-info');
+     $('#push_result').hide();
+
+     $.ajax({
+       url: "{% url 'push' %}",
+       method: "POST",
+       dataType: 'json',
+       data: {
+         push_type: 'attendance',
+         push_id: {{ user.id }},
+         push_emotions: String(emotions.neutral)+","+String(emotions.happy)+","+String(emotions.sad)+","+String(emotions.angry)+","+String(emotions.fearful) +","+ String(emotions.disgusted) + "," + String(emotions.surprised),
+       },
+       beforeSend: function(xhr, settings) {
+         if(!csrfSafeMethod(settings.type) && !this.crossDomain) {
+           var csrfToken = getCookie("csrftoken");
+           xhr.setRequestHeader("X-CSRFToken", csrfToken);
+         }
+       },
+     })
+     .done(function (data) {
+       if (data.result == 'success'){
+         $('#push_result').text('出勤しました： ' + data.attendance_time);
+         $('#push_result').addClass('alert-info');
+         $('#push_result').show();
+       } else {
+         $('#push_result').text('すでに打刻しています');
+         $('#push_result').addClass('alert-danger');
+         $('#push_result').show();
+       }
+       window.location.reload();
+     });
+    });
+ 
+   $('#leave_button-{{ user.id }}').on('click', function () {
+     $('#push_result').removeClass('alert-danger');
+     $('#push_result').removeClass('alert-info');
+     $('#push_result').hide();
+     $.ajax({
+       url: "{% url 'push' %}",
+       method: "POST",
+       dataType: 'json',
+       data: {
+         push_type: 'leave',
+         push_id: {{ user.id }},
+         push_emotions: String(emotions.neutral)+","+String(emotions.happy)+","+String(emotions.sad)+","+String(emotions.angry)+","+ String(emotions.fearful) + ","+String(emotions.disgusted) + ","+String(emotions.surprised),
+       },
+       beforeSend: function(xhr, settings) {
+         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+           var csrfToken = getCookie("csrftoken");
+           xhr.setRequestHeader("X-CSRFToken", csrfToken);
+         }
+       window.location.reload();
+       },
+     })
+     .done(function (data) {
+       console.log(data);
+       if (data.result == 'success'){
+         $('#push_result').text('退勤しました： ' + data.leave_time);
+         $('#push_result').addClass('alert-info');
+         $('#push_result').show();
+       }
+       else if (data.result == 'not_attended') {
+         $('#push_result').text('まだ出勤打刻がされていません');
+         $('#push_result').addClass('alert-danger');
+         $('#push_result').show();
+       } else {
+         $('#push_result').text('すでに退勤打刻されています');
+         $('#push_result').addClass('alert-danger');
+         $('#push_result').show();
+       }
+     });
+   });
+   {% endfor %}
+
+    //顔認証
+    let video = document.querySelector("#videoElement");
+    let currentStream;
+    let displaySize;
+
+    if (navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+        video.srcObject = stream;
+        })
+        .catch(function (err0r) {
+        console.log("Something went wrong!");
+        });
+    }
+    
+    let temp = []
+    $("#videoElement").bind("loadedmetadata", function(){
+
+        displaySize = {width: video.videoWidth, height: video.videoHeight}
+        async function detect(){
+
+        const MODEL_URL = '/static/attendance/models';
+
+        await faceapi.loadSsdMobilenetv1Model(MODEL_URL);
+        await faceapi.loadFaceLandmarkModel(MODEL_URL);
+        await faceapi.loadFaceRecognitionModel(MODEL_URL);
+        await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceExpressionNet.load(MODEL_URL);
+
+        let canvas = $("#canvas").get(0);
+
+        facedetection = setInterval(async () =>{
+
+              let fullFaceDescriptions = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors().withAgeAndGender().withFaceExpressions()  //with~~をつけていくことでいろいろ機能追加される
+              let canvas = $("#canvas").get(0);
+              faceapi.matchDimensions(canvas, displaySize)
+
+              const fullFaceDescription = faceapi.resizeResults(fullFaceDescriptions, displaySize);
+              emotions = fullFaceDescription[0].expressions;
+　　　　　　　　
+              let labels = [];
+              {% for user in table %}
+                labels.push("/static/attendance/img/" + "{{ user.username }}"+".jpg");
+              {% endfor %}
+
+              const labeledFaceDescriptors = await Promise.all(
+                  labels.map(async label => {
+                      // fetch image data from urls and convert blob to HTMLImage element
+                      const imgUrl = `${label}`
+                      const img = await faceapi.fetchImage(imgUrl)
+                      
+                      // detect the face with the highest score in the image and compute it's landmarks and face descriptor
+                      const fullFaceDescription = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor().withAgeAndGender()
+                      
+                      if (!fullFaceDescription) {
+                      throw new Error(`no faces detected for ${label}`)
+                      }
+                      
+                      const faceDescriptors = [fullFaceDescription.descriptor]
+                      return new faceapi.LabeledFaceDescriptors(label, faceDescriptors)
+                  })
+              );
+
+ 
+
+              const maxDescriptorDistance = 0.50;
+              const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, maxDescriptorDistance);
+              const results = fullFaceDescriptions.map(fd => faceMatcher.findBestMatch(fd.descriptor));
+
+              results.forEach((bestMatch, i) => {
+                  const box = fullFaceDescriptions[i].detection.box;
+                  //なぜかこの座標変換があると枠を描画してくれない
+                  box._x = box._x + screen.width/2;
+                  box._y = box._y - screen.height/2;
+                  const text = bestMatch.toString();
+                  const drawBox = new faceapi.draw.DrawBox(box, { label: text });
+                  drawBox.draw(canvas);
+                  for(let j=0;j<labels.length;j++){
+                    try{
+                      if(bestMatch["_label"]==labels[j]){
+                          const attendance_button = document.getElementById("attendance_button-" + String(j));
+                          attendance_button.disabled = false;
+                          const leave_button = document.getElementById("leave_button-" + String(j));
+                          leave_button.disabled = false;
+                      }else{
+                          const attendance_button = document.getElementById("attendance_button-"+String(j));
+                          attendance_button.disabled = true;
+                          const leave_button = document.getElementById("leave_button-"+String(j));
+                          leave_button.disabled = true;
+                        }
+                      }catch{
+                        console.log("exception");
+                      }
+                  }
+                })
+            },1000);
+        }
+        detect()
+    });   
+ </script>
+{% endblock %}

@@ -1,0 +1,8 @@
+2023-02-24 10:14:35,984 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 10:18:05,712 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 10:18:09,710 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 10:20:59,892 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 10:21:28,329 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 10:21:52,476 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 10:23:31,377 - DEBUG:asyncio - Using selector: KqueueSelector
+2023-02-24 18:25:14,356 - DEBUG:asyncio - Using selector: KqueueSelector

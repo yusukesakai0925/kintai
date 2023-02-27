@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}保存{% endblock %}
+
+ {% block navbar %}
+ <span class="navbar-text">
+  <ul class="navbar-nav mr-auto">
+   <li class="nav-item activate">
+     <a class="nav-link" href="{% url 'records' %}">出勤簿</a>
+   </li>
+     <li class="nav-item activate">
+     <a class="nav-link" href="{% url 'fix_request' %}">打刻修正</a>
+   </li>
+   {% if request.user.is_staff %}
+     <li>
+       <a class="nav-link" href="{% url 'fix_acception' %}">打刻承認</a>
+     </li>
+   {% endif %}
+ </ul>
+   <a href="{% url 'logout' %}">ログアウト</a>
+ </span>
+ {% endblock %}
+
+{% block content %}
+ {% csrf_token %}
+ <div class="container my-2">
+   <div class="row">
+     <div class="d-grid gap-2 mx-auto">
+       <button id='backup_database' type="button" class="btn btn-lg btn-success">バックアップを取る</button>
+     </div>
+    <script>
+    $('#backup_database').on('click', function () { 
+     $.ajax({
+       url: "{% url 'backup' %}",
+       method: "POST",
+       dataType: 'json',
+       data: {
+         push_type: 'backup',
+       },
+       beforeSend: function(xhr, settings) {
+         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+           var csrfToken = getCookie("csrftoken");
+           xhr.setRequestHeader("X-CSRFToken", csrfToken);
+         }
+       },
+     })
+      .done(function (data) {
+         alert("完了しました");
+     });
+  });
+ </script>
+{% endblock %}
+
